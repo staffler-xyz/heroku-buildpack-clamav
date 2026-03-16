@@ -52,7 +52,7 @@ else
 fi
 
 # Make binaries available
-export PATH="${CLAMAV_CACHE}/usr/bin:${CLAMAV_CACHE}/usr/sbin:$PATH"
+export PATH="${CLAMAV_CACHE}/usr/local/bin:${CLAMAV_CACHE}/usr/local/sbin:$PATH"
 
 echo "Verifying ClamAV installation"
 
