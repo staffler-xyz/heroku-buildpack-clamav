@@ -58,7 +58,7 @@ echo "-----> Updating virus database"
 
 freshclam \
   --datadir="$DB_CACHE" \
-  --quiet || true
+  --quiet
 
 echo "-----> Copying ClamAV into slug"
 
