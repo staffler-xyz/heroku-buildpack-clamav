@@ -54,6 +54,13 @@ fi
 # Make binaries available
 export PATH="${CLAMAV_CACHE}/usr/bin:${CLAMAV_CACHE}/usr/sbin:$PATH"
 
+echo "Verifying ClamAV installation"
+
+if ! clamscan --version; then
+  echo "ERROR: ClamAV failed to install correctly"
+  exit 1
+fi
+
 echo "-----> Updating virus database"
 
 freshclam \
