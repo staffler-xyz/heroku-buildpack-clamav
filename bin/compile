@@ -12,14 +12,13 @@ DB_BUILD="${build}/.clamav-data"
 mkdir -p "$CLAMAV_CACHE"
 mkdir -p "$DB_CACHE"
 
-echo "Detecting latest ClamAV version"
+echo "-----> Detecting latest ClamAV version from GitHub"
 
 VERSION_FILE="${cache}/clamav-version"
 
-LATEST_VERSION=$(curl -fsSL https://www.clamav.net/downloads/production/ | \
-  grep -oE 'clamav-[0-9]+\.[0-9]+\.[0-9]+\.linux\.x86_64\.tar\.gz' | \
-  head -1 | \
-  sed -E 's/clamav-(.*)\.linux.*/\1/')
+LATEST_VERSION=$(curl -fsSL https://api.github.com/repos/Cisco-Talos/clamav/releases/latest \
+  | grep '"tag_name"' \
+  | sed -E 's/.*clamav-([^"]+)".*/\1/')
 
 echo "Latest version: $LATEST_VERSION"
 
@@ -29,36 +28,36 @@ if [ -f "$VERSION_FILE" ]; then
 fi
 
 if [ "$LATEST_VERSION" != "$CACHED_VERSION" ]; then
-  echo "Downloading ClamAV $LATEST_VERSION"
+  echo "-----> Downloading ClamAV $LATEST_VERSION"
 
   cd /tmp
 
-  curl -L "https://www.clamav.net/downloads/production/clamav-${LATEST_VERSION}.linux.x86_64.tar.gz" -o clamav.tar.gz
+  DEB_URL="https://github.com/Cisco-Talos/clamav/releases/download/clamav-${LATEST_VERSION}/clamav-${LATEST_VERSION}.linux.x86_64.deb"
 
-  tar -xzf clamav.tar.gz
+  curl -L "$DEB_URL" -o clamav.deb
 
   rm -rf "$CLAMAV_CACHE"/*
+  mkdir -p "$CLAMAV_CACHE"
 
-  cp -r "clamav-${LATEST_VERSION}.linux.x86_64/"* "$CLAMAV_CACHE"
+  dpkg -x clamav.deb "$CLAMAV_CACHE"
 
-  rm -rf clamav.tar.gz "clamav-${LATEST_VERSION}.linux.x86_64"
+  rm -f clamav.deb
 
   echo "$LATEST_VERSION" > "$VERSION_FILE"
-
 else
-  echo "Using cached ClamAV $CACHED_VERSION"
+  echo "-----> Using cached ClamAV $CACHED_VERSION"
 fi
 
 # Make binaries available
-export PATH="${CLAMAV_CACHE}/bin:${CLAMAV_CACHE}/sbin:$PATH"
+export PATH="${CLAMAV_CACHE}/usr/bin:${CLAMAV_CACHE}/usr/sbin:$PATH"
 
-echo "Updating virus database"
+echo "-----> Updating virus database"
 
 freshclam \
   --datadir="$DB_CACHE" \
   --quiet || true
 
-echo "Copying ClamAV into slug"
+echo "-----> Copying ClamAV into slug"
 
 rm -rf "$CLAMAV_BUILD"
 cp -r "$CLAMAV_CACHE" "$CLAMAV_BUILD"
@@ -66,4 +65,4 @@ cp -r "$CLAMAV_CACHE" "$CLAMAV_BUILD"
 rm -rf "$DB_BUILD"
 cp -r "$DB_CACHE" "$DB_BUILD"
 
-echo "ClamAV setup complete"
+echo "-----> ClamAV setup complete"
