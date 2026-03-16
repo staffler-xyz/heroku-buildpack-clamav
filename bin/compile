@@ -49,6 +49,8 @@ fi
 # Make binaries available
 export LD_LIBRARY_PATH="${CLAMAV_CACHE}/usr/local/lib:$LD_LIBRARY_PATH"
 export PATH="${CLAMAV_CACHE}/usr/local/bin:${CLAMAV_CACHE}/usr/local/sbin:$PATH"
+export CLAMAV_DATADIR="${CLAMAV_CACHE}/usr/local/share/clamav"
+export CLAMAV_CONF_DIR="${CLAMAV_CACHE}/usr/local/etc"
 
 echo "Verifying ClamAV installation"
 
