@@ -59,7 +59,8 @@ fi
 
 echo "-----> Updating virus database"
 
-freshclam --config-file="${build}/config/clamav/freshclam.conf" --datadir="$DB_CACHE" --quiet
+CA_CERT=$(find "$CLAMAV_CACHE" -name "freshclam.dat" -o -name "cacert.pem" | head -n 1)
+freshclam --config-file="${build}/config/clamav/freshclam.conf" --datadir="$DB_CACHE" --cacert="$CA_CERT" --quiet
 
 echo "-----> Copying ClamAV into slug"
 
