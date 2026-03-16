@@ -1,22 +1,69 @@
 #!/usr/bin/env bash
-#
-# bin/compile BUILD_DIR CACHE_DIR
-# BUILD_DIR - gives you a handle for the root directory of the app
-# CACHE_DIR - gives you a location to persist build artifacts between deployments
-# See more in https://blog.heroku.com/hacking-buildpacks
-#
+set -e
+
 build="$1"
 cache="$2"
 
-# Stops the execution of the script if a command has an error 
-set -e
+CLAMAV_CACHE="${cache}/clamav"
+CLAMAV_BUILD="${build}/.clamav"
+DB_CACHE="${cache}/clamav-db"
+DB_BUILD="${build}/.clamav-data"
 
-# Create a directory for the virus database
-mkdir -p "${cache}/clamav-data"
+mkdir -p "$CLAMAV_CACHE"
+mkdir -p "$DB_CACHE"
 
-# Refresh the virus database, the source is specified in the conf file
-freshclam --config-file="${build}/config/clamav/freshclam.conf" --datadir="${cache}/clamav-data/" --quiet
+echo "Detecting latest ClamAV version"
 
-# Replace the old virus database
-rm -rf "${build}/.clamav-data"
-cp -rp "${cache}/clamav-data" "${build}/.clamav-data"
+VERSION_FILE="${cache}/clamav-version"
+
+LATEST_VERSION=$(curl -fsSL https://www.clamav.net/downloads/production/ | \
+  grep -oE 'clamav-[0-9]+\.[0-9]+\.[0-9]+\.linux\.x86_64\.tar\.gz' | \
+  head -1 | \
+  sed -E 's/clamav-(.*)\.linux.*/\1/')
+
+echo "Latest version: $LATEST_VERSION"
+
+CACHED_VERSION=""
+if [ -f "$VERSION_FILE" ]; then
+  CACHED_VERSION=$(cat "$VERSION_FILE")
+fi
+
+if [ "$LATEST_VERSION" != "$CACHED_VERSION" ]; then
+  echo "Downloading ClamAV $LATEST_VERSION"
+
+  cd /tmp
+
+  curl -L "https://www.clamav.net/downloads/production/clamav-${LATEST_VERSION}.linux.x86_64.tar.gz" -o clamav.tar.gz
+
+  tar -xzf clamav.tar.gz
+
+  rm -rf "$CLAMAV_CACHE"/*
+
+  cp -r "clamav-${LATEST_VERSION}.linux.x86_64/"* "$CLAMAV_CACHE"
+
+  rm -rf clamav.tar.gz "clamav-${LATEST_VERSION}.linux.x86_64"
+
+  echo "$LATEST_VERSION" > "$VERSION_FILE"
+
+else
+  echo "Using cached ClamAV $CACHED_VERSION"
+fi
+
+# Make binaries available
+export PATH="${CLAMAV_CACHE}/bin:${CLAMAV_CACHE}/sbin:$PATH"
+
+echo "Updating virus database"
+
+freshclam \
+  --datadir="$DB_CACHE" \
+  --quiet || true
+
+echo "Copying ClamAV into slug"
+
+rm -rf "$CLAMAV_BUILD"
+cp -r "$CLAMAV_CACHE" "$CLAMAV_BUILD"
+
+rm -rf "$DB_BUILD"
+cp -r "$DB_CACHE" "$DB_BUILD"
+
+echo "ClamAV setup complete"
