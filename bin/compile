@@ -65,6 +65,7 @@ fi
 echo "-----> Updating virus database"
 
 freshclam \
+  --config-file="${build}/config/clamav/freshclam.conf"
   --datadir="$DB_CACHE" \
   --quiet
 
