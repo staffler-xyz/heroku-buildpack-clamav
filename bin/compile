@@ -52,7 +52,7 @@ else
 fi
 
 # Make binaries available
-export LD_LIBRARY_PATH="${CLAMAV_CACHE}/usr/local/lib64:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="${CLAMAV_CACHE}/usr/local/lib:$LD_LIBRARY_PATH"
 export PATH="${CLAMAV_CACHE}/usr/local/bin:${CLAMAV_CACHE}/usr/local/sbin:$PATH"
 
 echo "Verifying ClamAV installation"
@@ -78,7 +78,7 @@ cp -r "$DB_CACHE" "$DB_BUILD"
 
 echo "-----> Verifying ClamAV installation in slug"
 
-export LD_LIBRARY_PATH="${CLAMAV_BUILD}/usr/local/lib64:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="${CLAMAV_BUILD}/usr/local/lib:$LD_LIBRARY_PATH"
 export PATH="${CLAMAV_BUILD}/usr/local/bin:${CLAMAV_BUILD}/usr/local/sbin:$PATH"
 
 echo "Verifying ClamAV installation"
