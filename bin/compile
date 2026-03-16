@@ -51,6 +51,18 @@ else
   echo "-----> Using cached ClamAV $CACHED_VERSION"
 fi
 
+echo "-----> Locating ClamAV libraries"
+# This finds the directory containing the actual .so files
+LIB_DIR=$(find "$CLAMAV_CACHE" -name "libclamav.so*" -exec dirname {} \; | head -n 1)
+
+if [ -z "$LIB_DIR" ]; then
+  echo "ERROR: Could not find libclamav.so in $CLAMAV_CACHE"
+  find "$CLAMAV_CACHE" -maxdepth 4
+  exit 1
+fi
+
+echo "Found libraries in: $LIB_DIR"
+
 # Make binaries available
 export LD_LIBRARY_PATH="${CLAMAV_CACHE}/usr/local/lib64:$LD_LIBRARY_PATH"
 export PATH="${CLAMAV_CACHE}/usr/local/bin:${CLAMAV_CACHE}/usr/local/sbin:$PATH"
