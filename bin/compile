@@ -16,12 +16,7 @@ echo "-----> Detecting latest ClamAV version from GitHub"
 
 VERSION_FILE="${cache}/clamav-version"
 
-LATEST_VERSION=$(curl -fsSL \
-  -H "Accept: application/vnd.github+json" \
-  -H "User-Agent: heroku-buildpack-clamav" \
-  https://api.github.com/repos/Cisco-Talos/clamav/releases/latest \
-  | grep '"tag_name":' \
-  | sed -E 's/.*clamav-([^"]+)".*/\1/')
+LATEST_VERSION=$(curl -fsSL -H "Accept: application/vnd.github+json" -H "User-Agent: heroku-buildpack-clamav" https://api.github.com/repos/Cisco-Talos/clamav/releases/latest | grep '"tag_name":' | sed -E 's/.*clamav-([^"]+)".*/\1/')
 
 echo "Latest version: $LATEST_VERSION"
 
@@ -64,10 +59,7 @@ fi
 
 echo "-----> Updating virus database"
 
-freshclam \
-  --config-file="${build}/config/clamav/freshclam.conf"
-  --datadir="$DB_CACHE" \
-  --quiet
+freshclam --config-file="${build}/config/clamav/freshclam.conf" --datadir="$DB_CACHE" --quiet
 
 echo "-----> Copying ClamAV into slug"
 
