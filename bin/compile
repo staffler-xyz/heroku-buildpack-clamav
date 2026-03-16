@@ -16,8 +16,11 @@ echo "-----> Detecting latest ClamAV version from GitHub"
 
 VERSION_FILE="${cache}/clamav-version"
 
-LATEST_VERSION=$(curl -fsSL https://api.github.com/repos/Cisco-Talos/clamav/releases/latest \
-  | grep '"tag_name"' \
+LATEST_VERSION=$(curl -fsSL \
+  -H "Accept: application/vnd.github+json" \
+  -H "User-Agent: heroku-buildpack-clamav" \
+  https://api.github.com/repos/Cisco-Talos/clamav/releases/latest \
+  | grep '"tag_name":' \
   | sed -E 's/.*clamav-([^"]+)".*/\1/')
 
 echo "Latest version: $LATEST_VERSION"
